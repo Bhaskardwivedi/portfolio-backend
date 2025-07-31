@@ -1,13 +1,18 @@
+# Base image
 FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
 
+# Copy everything
 COPY . /app
 
+# Install requirements
 RUN pip install --upgrade pip
 RUN pip install --break-system-packages -r requirements.txt
 
-ENV PORT=8000
+# Expose default port
 EXPOSE 8000
 
-CMD ["sh", "-c", "echo PORT=$PORT && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT"]
+# Use Railway-injected PORT env
+CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT}"]
