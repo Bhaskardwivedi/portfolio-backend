@@ -4,13 +4,13 @@ WORKDIR /app
 
 COPY . /app
 
-# Install pip packages
+# Upgrade pip and install packages
 RUN pip install --upgrade pip
 RUN pip install --break-system-packages -r requirements.txt
 
-# Railway will inject the PORT env variable
-ENV PORT 8000
-EXPOSE ${PORT}
+# Define PORT explicitly (Railway sets it automatically too, but for safety we default it)
+ENV PORT=8000
+EXPOSE 8000
 
-# Run gunicorn with the correct port
-CMD gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT}
+# Run Django using gunicorn on the specified port
+CMD exec gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3
