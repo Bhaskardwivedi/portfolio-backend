@@ -1,17 +1,10 @@
-[setup]
-nixPkgs = ["python311", "pip", "gcc"]
+[phases.setup]
+nixPkgs = ["python311", "nodejs_18"]
 
-[install]
+[phases.install]
 cmds = [
-  "python3 -m ensurepip --upgrade",
-  "pip install --upgrade pip",
-  "pip install -r requirements.txt"
-]
-
-[build]
-cmds = [
-  "python manage.py collectstatic --noinput",
-  "python manage.py migrate"
+  "pip install -r requirements.txt",
+  "cd frontend && npm install && npm run build"
 ]
 
 [start]
