@@ -7,17 +7,16 @@ pythonVersion = "3.10"
 nixPkgs = [
   "python310",
   "python310Packages.pip",
-  "postgresql",
   "gcc",
   "libffi",
   "openssl",
   "pkg-config",
-  "zlib",
+  "zlib"
 ]
 
 [phases.install]
 cmds = [
-  "pip install --break-system-packages --no-cache-dir -r requirements.txt"
+  "PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir -r requirements.txt"
 ]
 
 [start]
