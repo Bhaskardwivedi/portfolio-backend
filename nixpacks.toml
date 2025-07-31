@@ -1,14 +1,13 @@
 [build]
 nixpacksVersion = 1
 languages = ["python", "nodejs"]
-pythonVersion = "3.11"
+pythonVersion = "3.10"  # ✅ safest for Django on Railway
 
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
+nixPkgs = ["python310", "python310Packages.pip"]
 
 [phases.install]
 cmds = [
-  "ls",  # debugging step to show files
   "pip install --no-cache-dir --break-system-packages -r requirements.txt"
 ]
 
