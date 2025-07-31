@@ -1,11 +1,19 @@
 [phases.setup]
-nixPkgs = ["python311", "nodejs"]
+nixPkgs = ["python311", "nodejs_18"]
 
 [phases.install]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt",
+  "cd frontend && npm install"
+]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = [
+  "cd frontend && npm run build",
+  "python manage.py collectstatic --noinput",
+  "python manage.py migrate"
+]
 
-[phases.start]
-cmd = "gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT"
+[start]
+cmd = "gunicorn backend.wsgi"
