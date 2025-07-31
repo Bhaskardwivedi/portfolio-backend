@@ -1,19 +1,23 @@
 [build]
 nixpacksVersion = 1
-languages = ["python", "nodejs"]
-pythonVersion = "3.10"  # ✅ safest for Django on Railway
+languages = ["python"]
+pythonVersion = "3.10"
 
 [phases.setup]
-nixPkgs = ["python310", "python310Packages.pip"]
+nixPkgs = [
+  "python310",
+  "python310Packages.pip",
+  "postgresql",
+  "gcc",
+  "libffi",
+  "openssl",
+  "pkg-config",
+  "zlib",
+]
 
 [phases.install]
 cmds = [
-  "pip install --no-cache-dir --break-system-packages -r requirements.txt"
-]
-
-[phases.build]
-cmds = [
-  "cd frontend && npm install && npm run build"
+  "pip install --break-system-packages --no-cache-dir -r requirements.txt"
 ]
 
 [start]
