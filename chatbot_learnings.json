@@ -1,0 +1,12 @@
+[
+  {
+    "intent": "repeat",
+    "bad_reply_contains": "assist",
+    "replace_with": "(You decide): Better reply for intent=repeat when bot says 'assist'"
+  },
+  {
+    "intent": "repeat",
+    "bad_reply_contains": "today?",
+    "replace_with": "(You decide): Better reply for intent=repeat when bot says 'today?'"
+  }
+]
