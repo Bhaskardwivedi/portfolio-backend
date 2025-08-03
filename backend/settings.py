@@ -38,7 +38,8 @@ SECRET_KEY = 'django-insecure-v7%97)kxqip+$wjyt)cpk(sf!x)g@tcvu_byh5ueh)g(o7-7i@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['portfolio-backend-production-d996.up.railway.app', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOST", "127.0.0.1,localhost").split(",")
+print("📌 ALLOWED_HOSTS from env:", ALLOWED_HOSTS)
 
 
 
