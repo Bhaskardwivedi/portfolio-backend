@@ -15,6 +15,8 @@ import os
 from dotenv import load_dotenv 
 from django.conf import settings
 from django.conf.urls.static import static
+import dj_database_url
+
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") 
@@ -113,12 +115,17 @@ CSRF_TRUSTED_ORIGINS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.getenv("RAILWAY") == "TRUE":
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
