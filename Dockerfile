@@ -9,4 +9,4 @@ RUN pip install --break-system-packages -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "gunicorn backend.wsgi:application"]
