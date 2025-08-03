@@ -11,9 +11,9 @@ venv/
 env/
 
 # Ignore database files
-*.sqlite3
+
 
 # Ignore IDE files
 .vscode/
 .idea/
-.env
+
