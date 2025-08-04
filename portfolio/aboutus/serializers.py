@@ -56,7 +56,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
 
 class AboutUsHeroSerializer(serializers.ModelSerializer):
     total_tech_experience = serializers.SerializerMethodField() 
-    hero_image = serializers.ImageField()
+    hero_image = serializers.SerializerMethodField()
 
     class Meta:
         model = AboutUs
@@ -72,3 +72,9 @@ class AboutUsHeroSerializer(serializers.ModelSerializer):
 
     def get_total_tech_experience(self, obj):
         return obj.total_tech_experience
+    
+    def get_hero_image(self, obj):
+        request = self.context.get('request')
+        if obj.hero_image and hasattr(obj.hero_image, 'url'):
+            return request.build_absolute_uri(obj.hero_image.url) if request else obj.hero_image.url
+        return None

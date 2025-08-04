@@ -17,5 +17,5 @@ class AboutUsHeroAPIView(APIView):
         about = AboutUs.objects.first()
         if not about:
             return Response({"error": "No AboutUs data found."}, status=404)
-        serializer = AboutUsHeroSerializer(about)
+        serializer = AboutUsHeroSerializer(about, context={"request": request})
         return Response(serializer.data)
