@@ -112,6 +112,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
 
     "https://bhaskarai.com",
+    "https://api.bhaskarai.com",
     "http://localhost:5173",
     "http://192.168.31.164:5173",   # ✅ Add this
 ]
@@ -119,7 +120,7 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://192.168.31.164:5173",
-    "https://portfolio-backend-production-d996.up.railway.app",
+    "https://api.bhaskarai.com",
     "https://bhaskarai.com"
     # ✅ Add this too
 ]
