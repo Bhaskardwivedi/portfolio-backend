@@ -96,13 +96,22 @@ TEMPLATES = [
         },
     },
 ]
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'your_cloud_name',
+    'API_KEY': 'your_api_key',
+    'API_SECRET': 'your_api_secret',
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 #CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
+
+    "https://bhaskarai.com",
     "http://localhost:5173",
     "http://192.168.31.164:5173",   # ✅ Add this
 ]
