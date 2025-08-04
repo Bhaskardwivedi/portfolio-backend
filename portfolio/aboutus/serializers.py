@@ -55,7 +55,8 @@ class AboutUsSerializer(serializers.ModelSerializer):
 
 
 class AboutUsHeroSerializer(serializers.ModelSerializer):
-    total_tech_experience = serializers.SerializerMethodField()
+    total_tech_experience = serializers.SerializerMethodField() 
+    hero_image = serializers.ImageField()
 
     class Meta:
         model = AboutUs
