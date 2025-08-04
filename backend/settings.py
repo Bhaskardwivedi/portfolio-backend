@@ -109,7 +109,8 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-    "http://192.168.31.164:5173",   # ✅ Add this too
+    "http://192.168.31.164:5173",
+    "https://portfolio-backend-production-d996.up.railway.app"     # ✅ Add this too
 ]
 
 
