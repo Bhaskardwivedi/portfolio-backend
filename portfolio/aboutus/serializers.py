@@ -59,6 +59,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
             'resume',
             'total_tech_experience',
             'experiences',
+            'skills'
         ]
         read_only_fields = ('updated_at',)
 
