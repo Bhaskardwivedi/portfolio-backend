@@ -53,6 +53,12 @@ class AboutUsSerializer(serializers.ModelSerializer):
 
     def get_total_tech_experience(self, obj):
         return obj.total_tech_experience
+    
+    def get_aboutus_image(self, obj):
+        request = self.context.get('request')
+        if obj.aboutus_image and hasattr(obj.aboutus_image, 'url'):
+            return request.build_absolute_uri(obj.aboutus_image.url) if request else obj.aboutus_image.url
+        return None
 
 
 class AboutUsHeroSerializer(serializers.ModelSerializer):
@@ -80,8 +86,4 @@ class AboutUsHeroSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.hero_image.url) if request else obj.hero_image.url
         return None
     
-    def get_aboutus_image(self, obj):
-        request = self.context.get('request')
-        if obj.aboutus_image and hasattr(obj.aboutus_image, 'url'):
-            return request.build_absolute_uri(obj.aboutus_image.url) if request else obj.aboutus_image.url
-        return None
+    
