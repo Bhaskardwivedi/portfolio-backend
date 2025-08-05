@@ -62,17 +62,16 @@ class AboutUsSerializer(serializers.ModelSerializer):
         return None
 
     def get_resume(self, obj):
-        request = self.context.get('request')
-        if obj.resume and hasattr(obj.resume, 'url'):
-            raw_url = obj.resume.url
-            full_url = request.build_absolute_uri(raw_url) if request else raw_url
-            download_url = full_url.replace('/upload/', '/upload/fl_attachment/')
+        if obj.resume and hasattr(obj.resume, 'public_id'):
+            cloud_name = "dkiii8j7g"  
+            public_id = obj.resume.public_id
+            filename = "resume"  
+            download_url = f"https://res.cloudinary.com/{cloud_name}/raw/upload/fl_attachment:{filename}/{public_id}"
             return download_url
         return None
 
-
 class AboutUsHeroSerializer(serializers.ModelSerializer):
-    total_tech_experience = serializers.SerializerMethodField() 
+    total_tech_experience = serializers.SerializerMethodField()
     hero_image = serializers.SerializerMethodField()
 
     class Meta:
