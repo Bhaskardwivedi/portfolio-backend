@@ -64,9 +64,12 @@ class AboutUsSerializer(serializers.ModelSerializer):
     def get_resume(self, obj):
         request = self.context.get('request')
         if obj.resume and hasattr(obj.resume, 'url'):
-            return request.build_absolute_uri(obj.resume.url) if request else obj.resume.url
+            raw_url = obj.resume.url
+            full_url = request.build_absolute_uri(raw_url) if request else raw_url
+            download_url = full_url.replace('/upload/', '/upload/fl_attachment/')
+            return download_url
         return None
-    
+
 
 class AboutUsHeroSerializer(serializers.ModelSerializer):
     total_tech_experience = serializers.SerializerMethodField() 
