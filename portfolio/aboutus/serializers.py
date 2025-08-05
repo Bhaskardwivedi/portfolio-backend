@@ -62,11 +62,12 @@ class AboutUsSerializer(serializers.ModelSerializer):
         return None
 
     def get_resume(self, obj):
-        if obj.resume and hasattr(obj.resume, 'public_id'):
+        if obj.resume and hasattr(obj.resume, 'public_id') and hasattr(obj.resume, 'format'):
             cloud_name = "dkiii8j7g"  
             public_id = obj.resume.public_id
-            filename = "resume"  
-            download_url = f"https://res.cloudinary.com/{cloud_name}/raw/upload/fl_attachment:{filename}/{public_id}"
+            extension = obj.resume.format
+            filename = "resume"
+            download_url = f"https://res.cloudinary.com/{cloud_name}/raw/upload/fl_attachment:{filename}/{public_id}.{extension}"
             return download_url
         return None
 
