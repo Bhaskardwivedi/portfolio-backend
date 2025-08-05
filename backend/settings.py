@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from django.conf import settings
 from django.conf.urls.static import static
 import dj_database_url
+import cloudinary
 
 
 load_dotenv()
@@ -98,12 +99,13 @@ TEMPLATES = [
         },
     },
 ]
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dkiii8j7g',
-    'API_KEY': '255943193176788',
-    'API_SECRET': 'SqoAtjvjmZemUJupRNS8jWrLec4',
-}
-
+cloudinary.config( 
+  cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"), 
+  api_key = os.getenv("CLOUDINARY_API_KEY"), 
+  api_secret = os.getenv("CLOUDINARY_API_SECRET")
+)
+print("Cloudinary cloud_name:", os.getenv("CLOUDINARY_CLOUD_NAME"))
+print("Cloudinary api_key:", os.getenv("CLOUDINARY_API_KEY"))
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 WSGI_APPLICATION = 'backend.wsgi.application'
