@@ -34,6 +34,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, read_only=True)
     total_tech_experience = serializers.SerializerMethodField()
     aboutus_image = serializers.SerializerMethodField()
+    resume = serializers.SerializerMethodField()
 
     class Meta:
         model = AboutUs
@@ -60,6 +61,12 @@ class AboutUsSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.aboutus_image.url) if request else obj.aboutus_image.url
         return None
 
+    def get_resume(self, obj):
+        request = self.context.get('request')
+        if obj.resume and hasattr(obj.resume, 'url'):
+            return request.build_absolute_uri(obj.resume.url) if request else obj.resume.url
+        return None
+    
 
 class AboutUsHeroSerializer(serializers.ModelSerializer):
     total_tech_experience = serializers.SerializerMethodField() 

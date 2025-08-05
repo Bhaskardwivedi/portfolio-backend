@@ -25,7 +25,7 @@ class AboutUs(models.Model):
     total_clients = models.PositiveIntegerField()
     aboutus_image = CloudinaryField('aboutus_images', blank=True, null=True)
     hero_image = CloudinaryField('hero_images', blank=True, null=True)
-    resume = models.FileField(upload_to="resumes/", blank=True, null=True)
+    resume = CloudinaryField('resumes', blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True) 
 
     @property
