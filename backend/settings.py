@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'portfolio.socials',
     'portfolio.feedback',
     'portfolio.category',
+    'cloudinary',
+    'cloudinary_storage',
     'corsheaders', 
     'rest_framework', 
     'rest_framework.authtoken', 
@@ -97,9 +99,9 @@ TEMPLATES = [
     },
 ]
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'your_cloud_name',
-    'API_KEY': 'your_api_key',
-    'API_SECRET': 'your_api_secret',
+    'CLOUD_NAME': 'dkii8j7g',
+    'API_KEY': '255943193176788',
+    'API_SECRET': 'SqoAtjvjmZemUJupRNS8jWrLec4',
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
