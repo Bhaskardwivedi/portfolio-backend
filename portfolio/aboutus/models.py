@@ -69,3 +69,10 @@ class Experience(models.Model):
             for exp in self.experiences.filter(is_tech=True)
          ])
 
+class Skill(models.Model):
+    about = models.ForeignKey("AboutUs", on_delete=models.CASCADE, related_name="skills")
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return self.name

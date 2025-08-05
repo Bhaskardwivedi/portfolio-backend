@@ -1,7 +1,7 @@
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import AboutUs
+from .models import AboutUs, Skill
 from .serializers import AboutUsSerializer 
 from .serializers import AboutUsHeroSerializer
 
@@ -19,3 +19,4 @@ class AboutUsHeroAPIView(APIView):
             return Response({"error": "No AboutUs data found."}, status=404)
         serializer = AboutUsHeroSerializer(about, context={"request": request})
         return Response(serializer.data)
+

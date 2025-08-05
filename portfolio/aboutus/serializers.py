@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AboutUs, Experience
+from .models import AboutUs, Experience, Skill
 from datetime import datetime
 
 
@@ -30,11 +30,21 @@ class ExperienceSerializer(serializers.ModelSerializer):
         return end_year - obj.start_year
 
 
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = [
+            'name',
+            'icon'
+        ]
+
+
 class AboutUsSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, read_only=True)
     total_tech_experience = serializers.SerializerMethodField()
     aboutus_image = serializers.SerializerMethodField()
-    resume = serializers.SerializerMethodField()
+    resume = serializers.SerializerMethodField() 
+    skills = SkillSerializer(many=True, read_only=True)
 
     class Meta:
         model = AboutUs
@@ -71,6 +81,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
             return download_url
         return None
 
+
 class AboutUsHeroSerializer(serializers.ModelSerializer):
     total_tech_experience = serializers.SerializerMethodField()
     hero_image = serializers.SerializerMethodField()
@@ -95,5 +106,3 @@ class AboutUsHeroSerializer(serializers.ModelSerializer):
         if obj.hero_image and hasattr(obj.hero_image, 'url'):
             return request.build_absolute_uri(obj.hero_image.url) if request else obj.hero_image.url
         return None
-    
-    
