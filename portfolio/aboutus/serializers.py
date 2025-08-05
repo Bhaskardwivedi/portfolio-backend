@@ -33,6 +33,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
 class AboutUsSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, read_only=True)
     total_tech_experience = serializers.SerializerMethodField()
+    aboutus_image = serializers.SerializerMethodField()
 
     class Meta:
         model = AboutUs
@@ -57,7 +58,6 @@ class AboutUsSerializer(serializers.ModelSerializer):
 class AboutUsHeroSerializer(serializers.ModelSerializer):
     total_tech_experience = serializers.SerializerMethodField() 
     hero_image = serializers.SerializerMethodField()
-    aboutus_image = serializers.SerializerMethodField()
 
     class Meta:
         model = AboutUs
