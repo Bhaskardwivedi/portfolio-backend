@@ -36,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-v7%97)kxqip+$wjyt)cpk(sf!x)g@tcvu_byh5ueh)g(o7-7i@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ["api.bhaskarai.com", "bhaskarai.com", "localhost", "127.0.0.1"]
 
 print("📌 ALLOWED_HOSTS from env:", ALLOWED_HOSTS)
@@ -99,7 +99,7 @@ TEMPLATES = [
     },
 ]
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dkii8j7g',
+    'CLOUD_NAME': 'dkiii8j7g',
     'API_KEY': '255943193176788',
     'API_SECRET': 'SqoAtjvjmZemUJupRNS8jWrLec4',
 }

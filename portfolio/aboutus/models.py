@@ -23,8 +23,8 @@ class AboutUs(models.Model):
     current_focus = models.CharField(max_length=255, blank=True, null=True)
     total_projects = models.PositiveIntegerField()
     total_clients = models.PositiveIntegerField()
-    aboutus_image = CloudinaryField('image') 
-    hero_image = models.ImageField(upload_to=upload_to_hero, blank=True, null=True)
+    aboutus_image = CloudinaryField('image', blank=True, null=True)
+    hero_image = CloudinaryField('image', blank=True, null=True)
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True) 
 
