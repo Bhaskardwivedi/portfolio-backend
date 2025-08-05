@@ -37,8 +37,8 @@ SECRET_KEY = 'django-insecure-v7%97)kxqip+$wjyt)cpk(sf!x)g@tcvu_byh5ueh)g(o7-7i@
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+ALLOWED_HOSTS = ["api.bhaskarai.com", "bhaskarai.com", "localhost", "127.0.0.1"]
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOST", "127.0.0.1,localhost").split(",")
 print("📌 ALLOWED_HOSTS from env:", ALLOWED_HOSTS)
 
 
@@ -118,11 +118,10 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://api.bhaskarai.com",
+    "https://bhaskarai.com",
     "http://localhost:5173",
     "http://192.168.31.164:5173",
-    "https://api.bhaskarai.com",
-    "https://bhaskarai.com"
-    # ✅ Add this too
 ]
 
 
