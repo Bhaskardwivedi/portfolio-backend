@@ -43,7 +43,7 @@ class HighlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Highlight
         fields = [
-            'name',
+            'text',
             'icon'
         ]
 
