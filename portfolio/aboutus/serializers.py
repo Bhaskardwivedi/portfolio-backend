@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AboutUs, Experience, Skill
+from .models import AboutUs, Experience, Skill, Highlight
 from datetime import datetime
 
 
@@ -38,13 +38,22 @@ class SkillSerializer(serializers.ModelSerializer):
             'icon'
         ]
 
+class HighlightSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Highlight
+        fields = [
+            'name',
+            'icon'
+        ]
 
 class AboutUsSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, read_only=True)
     total_tech_experience = serializers.SerializerMethodField()
     aboutus_image = serializers.SerializerMethodField()
     resume = serializers.SerializerMethodField() 
-    skills = SkillSerializer(many=True, read_only=True)
+    skills = SkillSerializer(many=True, read_only=True) 
+    highlight = HighlightSerializer(many=True, read_only=True)
 
     class Meta:
         model = AboutUs
@@ -59,7 +68,8 @@ class AboutUsSerializer(serializers.ModelSerializer):
             'resume',
             'total_tech_experience',
             'experiences',
-            'skills'
+            'skills',
+            'highlight'
         ]
         read_only_fields = ('updated_at',)
 

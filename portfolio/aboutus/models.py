@@ -75,4 +75,13 @@ class Skill(models.Model):
     icon = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.name 
+    
+class Highlight(models.Model): 
+
+    about = models.ForeignKey(AboutUs, on_delete=models.CASCADE, related_name='highlights')
+    text = models.CharField(max_length=300)
+    icon = models.CharField(max_length=20) 
+
+    def __str__(self):
+        return self.text
