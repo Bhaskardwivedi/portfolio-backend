@@ -53,7 +53,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
     aboutus_image = serializers.SerializerMethodField()
     resume = serializers.SerializerMethodField() 
     skills = SkillSerializer(many=True, read_only=True) 
-    highlight = HighlightSerializer(many=True, read_only=True)
+    highlights = HighlightSerializer(many=True, read_only=True)
 
     class Meta:
         model = AboutUs
@@ -69,7 +69,7 @@ class AboutUsSerializer(serializers.ModelSerializer):
             'total_tech_experience',
             'experiences',
             'skills',
-            'highlight'
+            'highlights'
         ]
         read_only_fields = ('updated_at',)
 
