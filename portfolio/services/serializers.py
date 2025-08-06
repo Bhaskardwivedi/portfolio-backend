@@ -24,7 +24,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['slug', 'created_at', 'updated_at'] 
 
-    def get_service_image(self, obj):
+    def get_image(self, obj):
         request = self.context.get('request')
         if obj.image and hasattr(obj.image, 'url'):
             return request.build_absolute_uri(obj.image.url) if request else obj.image.url
