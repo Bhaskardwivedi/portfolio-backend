@@ -2,6 +2,7 @@ from typing import Iterable
 from django.db import models
 from django.utils.text import slugify
 from portfolio.category.models import Category
+from cloudinary.models import CloudinaryField
 
 class Service(models.Model):
 
@@ -12,7 +13,7 @@ class Service(models.Model):
     description = models.TextField(help_text="Detailed description of what this service offers")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="services")
     is_active = models.BooleanField(default=True)
-    image = models.ImageField(upload_to='service_images/', null=True, blank=True)
+    image = CloudinaryField('services', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
