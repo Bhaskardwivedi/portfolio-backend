@@ -43,7 +43,7 @@ class BlogCreateAPIView(generics.CreateAPIView):
         subscribers = Subscriber.objects.all()
 
         subject = f"New Blog Published: {blog.title}"
-        message = f"Hi,\n\nA new blog has been published on the website.\n\nTitle: {blog.title}\n\nRead here: https://yourdomain.com/blog/{blog.slug}"
+        message = f"Hi,\n\nA new blog has been published on the website.\n\nTitle: {blog.title}\n\nRead here: https://bhaskarai.com/blogs/{blog.slug}"
 
         for subscriber in subscribers:
             send_mail(
@@ -133,7 +133,7 @@ class BlogCreateAPIView(generics.CreateAPIView):
 
         if blog.is_published:
             subject = f"🆕 New Blog Published: {blog.title}"
-            message = f"Hi there!\n\nA new blog has been published:\n\nTitle: {blog.title}\n\nRead it now at: http://localhost:8000/blogs/{blog.slug}/"
+            message = f"Hi there!\n\nA new blog has been published:\n\nTitle: {blog.title}\n\nRead it now at: http://api.bhaskarai.com/blogs/{blog.slug}/"
             send_mail(
                 subject,
                 message,
