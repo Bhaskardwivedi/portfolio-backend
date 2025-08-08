@@ -18,7 +18,7 @@ def send_blog_to_subscribers(sender, instance, created, **kwargs):
         
         for subscriber_email in subscribers:
             # ✅ Corrected the unsubscribe URL path
-            unsubscribe_link = f"https://api.bhaskarai.com/api/blogs/unsubscribe/?email={subscriber_email}"
+            unsubscribe_link = f"{settings.BACKEND_BASE_URL}/api/blogs/unsubscribe/?email={subscriber_email}"
 
             html_message = f"""
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:10px;border:1px solid #ddd;">
