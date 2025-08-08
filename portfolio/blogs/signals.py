@@ -10,7 +10,7 @@ def send_blog_to_subscribers(sender, instance, created, **kwargs):
         title = instance.title
         slug = instance.slug
         content = instance.content[:150] + "..." if len(instance.content) > 150 else instance.content
-        blog_url = f"https://api.bhaskarai.com/api/blog/{slug}"
+        blog_url = f"https://api.bhaskarai.com/api/blogs/{slug}"
 
         subject = f"📰 New Blog Published: {title}"
 
