@@ -10,6 +10,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Categories"
         verbose_name_plural = "categories (services, projects)"
+        
     TYPE_CHOICES = (
         ('project', 'Project'),
         ('service', 'Service'),

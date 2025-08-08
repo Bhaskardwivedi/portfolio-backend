@@ -8,11 +8,18 @@ class BlogSerializer(serializers.ModelSerializer):
 
 class BlogListSerializer(serializers.ModelSerializer):
     summary = serializers.SerializerMethodField() 
+    image = serializers.SerializerMethodField()
     
 
     class Meta: 
         model = Blog 
-        fields = ['id', 'title', 'summary', 'image', 'created_at', 'slug'] 
+        fields = ['id', 'title', 'summary', 'image', 'created_at', 'slug']  
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url'):
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None   
 
     def get_summary(self, obj):
         return obj.content[:100] + '...' if len(obj.content) > 100 else obj.content

@@ -1,10 +1,11 @@
 from django.db import models 
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 
 class Blog(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField() 
-    image = models.ImageField(upload_to='blogs/')
+    image = CloudinaryField('blogs', blank=True, null=True)
     slug = models.SlugField(unique=True, null=False, blank=False, max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)  
     updated_at = models.DateTimeField(auto_now=True) 
