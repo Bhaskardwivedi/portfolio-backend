@@ -14,7 +14,7 @@ class Skill(models.Model):
     proficiency = models.IntegerField(default=0)
     experience_years = models.DecimalField(max_digits=4, decimal_places=1, default=0.0) 
     certificate_link = models.URLField(blank=True, null=True) 
-    icon = CloudinaryField(upload_to='icon', blank=True, null=True)
+    icon = CloudinaryField('icon', blank=True, null=True)
 
     def __str__(self):
         return self.name
