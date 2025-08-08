@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import AboutUs, Experience, Skill, Highlight
  
+AboutUs._meta.verbose_name = "About Us"
+AboutUs._meta.verbose_name_plural = "About Us"
+
 class SkillInline(admin.TabularInline):
     model = Skill
     extra = 1 

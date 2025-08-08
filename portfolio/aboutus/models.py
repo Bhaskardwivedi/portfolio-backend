@@ -28,6 +28,10 @@ class AboutUs(models.Model):
     resume = CloudinaryField('resume', resource_type='raw', blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True) 
     
+    class Meta:
+        verbose_name = "About Us"
+        verbose_name_plural = "About Us"
+        
     @property
     def total_tech_experience(self):
         current_year = date.today().year
