@@ -42,6 +42,7 @@ ALLOWED_HOSTS = ["api.bhaskarai.com", "bhaskarai.com", "localhost", "127.0.0.1"]
 
 print("📌 ALLOWED_HOSTS from env:", ALLOWED_HOSTS)
 
+FRONTEND_BASE_URL = "https://bhaskarai.com"
 BACKEND_BASE_URL = "https://api.bhaskarai.com"
 
 # Application definition
