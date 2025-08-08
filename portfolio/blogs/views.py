@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect  # ✅ redirect added
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import generics, viewsets, permissions
@@ -9,7 +9,8 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
 from django.core.mail import send_mail
-from django.core.signing import Signer, BadSignature  # ✅ for signed unsubscribe
+from django.core import signing                          # ✅ opaque signed token
+from django.core.signing import BadSignature
 
 from .models import Blog, Comment, Subscriber
 from .serializers import (
@@ -19,9 +20,6 @@ from .serializers import (
     CommentSerializer,
     SubscriberSerializer,
 )
-
-# Create a signer once
-signer = Signer(salt="newsletter-unsub")
 
 # -----------------------------
 # Permissions
@@ -163,24 +161,34 @@ class SubscribeAPIView(generics.CreateAPIView):
 @api_view(["GET"])
 def unsubscribe(request):
     """
-    Secure unsubscribe via signed token:
-    /api/blogs/unsubscribe/?s=<email:signature>
+    Secure unsubscribe via OPAQUE signed token:
+    /api/blogs/unsubscribe/?t=<token>
+    After processing, redirect to a clean success URL (no token/email in bar).
     """
-    signed = request.GET.get("s")
-
-    # Backward-compat: old emails had ?email=... -> reject with a hint
-    if not signed:
+    token = request.GET.get("t")
+    if not token:
         return HttpResponse(
             "Invalid or outdated link. Please use the latest email to unsubscribe.",
             status=400,
         )
 
     try:
-        email = signer.unsign(signed)  # verifies signature and extracts email
+        # optional expiry: 30 days
+        data = signing.loads(token, salt="newsletter-unsub", max_age=60 * 60 * 24 * 30)
+        email = data.get("e")
+        if not email:
+            return HttpResponse("Invalid token payload.", status=400)
     except BadSignature:
         return HttpResponse("Invalid or tampered link.", status=400)
+    except Exception:
+        return HttpResponse("Token expired or invalid.", status=400)
 
-    deleted, _ = Subscriber.objects.filter(email=email).delete()
-    if deleted:
-        return HttpResponse("You have been unsubscribed successfully.")
-    return HttpResponse("Email not found (already unsubscribed).", status=200)
+    Subscriber.objects.filter(email=email).delete()
+
+    # Clean URL (no querystring left in the bar)
+    return redirect("/api/blogs/unsubscribe/success/")
+
+
+@api_view(["GET"])
+def unsubscribe_success(request):
+    return HttpResponse("You have been unsubscribed successfully.")
