@@ -2,7 +2,8 @@ from django.db import models
 from cloudinary.models import CloudinaryField
 
 class SkillCategory(models.Model): 
-    name = models.CharField(max_length=100) 
+    name = models.CharField(max_length=100)
+    category_icon = CloudinaryField('category_icon', blank=True, null=True)
 
     def __str__(self): 
         return self.name
