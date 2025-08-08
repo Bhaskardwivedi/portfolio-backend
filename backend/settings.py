@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'portfolio.contactus', 
     'portfolio.chatwithus',  
     'portfolio.services',
-    'portfolio.aboutus',
+    'portfolio.aboutus.apps.AboutusConfig',
     'portfolio.socials',
     'portfolio.feedback',
     'portfolio.category',
