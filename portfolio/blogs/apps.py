@@ -6,4 +6,5 @@ class BlogsConfig(AppConfig):
 
     def ready(self):
         print("📣 BlogsConfig.ready() loaded")
-        import portfolio.blogs.signals  # noqa
+        import portfolio.blogs.signals 
+ 

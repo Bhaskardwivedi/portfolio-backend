@@ -45,6 +45,9 @@ print("📌 ALLOWED_HOSTS from env:", ALLOWED_HOSTS)
 FRONTEND_BASE_URL = "https://bhaskarai.com"
 BACKEND_BASE_URL = "https://api.bhaskarai.com"
 
+print("🔧 FRONTEND_BASE_URL =", FRONTEND_BASE_URL)
+print("🔧 BACKEND_BASE_URL  =", BACKEND_BASE_URL)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -55,7 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'portfolio.projects',
-    'portfolio.blogs.apps.BlogsConfig', 
+    'portfolio.blogs.apps.BlogsConfig',
     'portfolio.skills', 
     'portfolio.contactus', 
     'portfolio.chatwithus',  
