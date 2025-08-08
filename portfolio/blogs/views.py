@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404, redirect  # ✅ redirect added
+from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import generics, viewsets, permissions
@@ -9,8 +9,8 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
 from django.core.mail import send_mail
-from django.core import signing                          # ✅ opaque signed token
-from django.core.signing import BadSignature
+from django.core import signing                              # ✅ opaque token
+from django.core.signing import Signer, BadSignature         # ✅ legacy + errors
 
 from .models import Blog, Comment, Subscriber
 from .serializers import (
@@ -45,7 +45,6 @@ class BlogDetailView(RetrieveAPIView):
     lookup_field = "slug"
 
 
-# Optional if you still need the full serializer variant
 class BlogDetailAPIView(generics.RetrieveAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
@@ -74,7 +73,7 @@ class BlogDeleteAPIView(generics.DestroyAPIView):
 
 
 # -----------------------------
-# Create + Notify Subscribers (single canonical create view)
+# Create + Notify Subscribers
 # -----------------------------
 class BlogCreateAPIView(generics.CreateAPIView):
     queryset = Blog.objects.all()
@@ -82,13 +81,11 @@ class BlogCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         blog = serializer.save()
-
         if not blog.is_published:
             return
 
-        # Build links
         frontend = getattr(settings, "FRONTEND_BASE_URL", "").rstrip("/")
-        read_url = f"{frontend}/blog/{blog.slug}/"  # frontend detail page
+        read_url = f"{frontend}/blog/{blog.slug}/"
 
         subject = f"🆕 New Blog Published: {blog.title}"
         message = (
@@ -106,8 +103,7 @@ class BlogCreateAPIView(generics.CreateAPIView):
                 recipient_list=emails,
                 fail_silently=False,
             )
-        # NOTE: If you're also sending emails from signals.py on post_save,
-        # remove one of them to avoid duplicate emails.
+        # If you also send via signals, remove one to avoid duplicates.
 
 
 # -----------------------------
@@ -125,7 +121,6 @@ class BlogCommentListCreateAPIView(generics.ListCreateAPIView):
         blog = get_object_or_404(Blog, slug=blog_slug)
         comment = serializer.save(blog=blog)
 
-        # Notify owner via email
         subject = f"📝 New Blog Comment: {blog.title}"
         message = (
             f"From: {comment.name}\n"
@@ -161,31 +156,41 @@ class SubscribeAPIView(generics.CreateAPIView):
 @api_view(["GET"])
 def unsubscribe(request):
     """
-    Secure unsubscribe via OPAQUE signed token:
-    /api/blogs/unsubscribe/?t=<token>
-    After processing, redirect to a clean success URL (no token/email in bar).
-    """
-    token = request.GET.get("t")
-    if not token:
-        return HttpResponse(
-            "Invalid or outdated link. Please use the latest email to unsubscribe.",
-            status=400,
-        )
+    Supports BOTH formats and always redirects to a clean URL:
 
-    try:
-        # optional expiry: 30 days
-        data = signing.loads(token, salt="newsletter-unsub", max_age=60 * 60 * 24 * 30)
-        email = data.get("e")
-        if not email:
-            return HttpResponse("Invalid token payload.", status=400)
-    except BadSignature:
-        return HttpResponse("Invalid or tampered link.", status=400)
-    except Exception:
-        return HttpResponse("Token expired or invalid.", status=400)
+      - NEW (opaque token):  /api/blogs/unsubscribe/?t=<token>
+      - LEGACY (signed email): /api/blogs/unsubscribe/?s=<email:signature>
+
+    After processing, redirects to /api/blogs/unsubscribe/success/
+    so no sensitive query params remain in the address bar.
+    """
+    email = None
+
+    # 1) Try NEW opaque token first
+    token = request.GET.get("t")
+    if token:
+        try:
+            data = signing.loads(token, salt="newsletter-unsub", max_age=60 * 60 * 24 * 30)
+            email = data.get("e")
+        except BadSignature:
+            return HttpResponse("Invalid or tampered link.", status=400)
+        except Exception:
+            return HttpResponse("Token expired or invalid.", status=400)
+
+    # 2) Fallback to LEGACY signed email
+    if email is None:
+        legacy = request.GET.get("s")
+        if not legacy:
+            return HttpResponse(
+                "Invalid or outdated link. Please use the latest email to unsubscribe.",
+                status=400,
+            )
+        try:
+            email = Signer(salt="newsletter-unsub").unsign(legacy)
+        except BadSignature:
+            return HttpResponse("Invalid or tampered link.", status=400)
 
     Subscriber.objects.filter(email=email).delete()
-
-    # Clean URL (no querystring left in the bar)
     return redirect("/api/blogs/unsubscribe/success/")
 
 
