@@ -7,8 +7,16 @@ class SkillCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']  # Only return ID and Name
 
 class SkillSerializer(serializers.ModelSerializer):
-    category = SkillCategorySerializer()  # nested category object
+    category = SkillCategorySerializer()
+    icon = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Skill
         fields = ['id', 'name', 'proficiency', 'experience_years', 'certificate_link', 'icon', 'category']
+
+    def get_icon(self, obj):
+        request = self.context.get('request')
+        if obj.icon and hasattr(obj.icon, 'url'):
+            return request.build_absolute_uri(obj.icon.url) if request else obj.icon.url
+        return None
