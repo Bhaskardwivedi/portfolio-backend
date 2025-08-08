@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     'portfolio.aboutus.apps.AboutusConfig',
     'portfolio.socials',
     'portfolio.feedback',
-    'portfolio.category',
+    'portfolio.category.apps.CategoryConfig',
     'cloudinary',
     'cloudinary_storage',
     'corsheaders', 

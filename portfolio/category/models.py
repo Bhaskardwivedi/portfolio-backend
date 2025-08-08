@@ -7,7 +7,9 @@ class Category(models.Model):
     use_icon = models.BooleanField(default=True)
     icon = models.CharField(max_length=50, blank=True, null=True)
     image = models.ImageField(upload_to="category_images/", blank=True, null=True) 
-
+    class Meta:
+        verbose_name = "Categories"
+        verbose_name_plural = "categories (services, projects)"
     TYPE_CHOICES = (
         ('project', 'Project'),
         ('service', 'Service'),
