@@ -3,12 +3,13 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from rest_framework import generics, viewsets, permissions, status
+from rest_framework import generics, viewsets, permissions
 from rest_framework.decorators import api_view
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
 from django.core.mail import send_mail
+from django.core.signing import Signer, BadSignature  # ✅ for signed unsubscribe
 
 from .models import Blog, Comment, Subscriber
 from .serializers import (
@@ -18,6 +19,9 @@ from .serializers import (
     CommentSerializer,
     SubscriberSerializer,
 )
+
+# Create a signer once
+signer = Signer(salt="newsletter-unsub")
 
 # -----------------------------
 # Permissions
@@ -86,15 +90,13 @@ class BlogCreateAPIView(generics.CreateAPIView):
 
         # Build links
         frontend = getattr(settings, "FRONTEND_BASE_URL", "").rstrip("/")
-        backend  = getattr(settings, "BACKEND_BASE_URL", "").rstrip("/")
-
         read_url = f"{frontend}/blog/{blog.slug}/"  # frontend detail page
+
         subject = f"🆕 New Blog Published: {blog.title}"
-        # Plain-text email (simple + reliable); switch to EmailMessage for HTML if you want
         message = (
             f"Hi there!\n\nA new blog has been published:\n\n"
             f"Title: {blog.title}\n\nRead it now: {read_url}\n\n"
-            f"If you no longer wish to receive updates, you can unsubscribe using the link in the footer of our emails."
+            f"If you no longer wish to receive updates, use the unsubscribe link in the email footer."
         )
 
         emails = list(Subscriber.objects.values_list("email", flat=True))
@@ -106,6 +108,8 @@ class BlogCreateAPIView(generics.CreateAPIView):
                 recipient_list=emails,
                 fail_silently=False,
             )
+        # NOTE: If you're also sending emails from signals.py on post_save,
+        # remove one of them to avoid duplicate emails.
 
 
 # -----------------------------
@@ -134,7 +138,7 @@ class BlogCommentListCreateAPIView(generics.ListCreateAPIView):
         send_mail(
             subject=subject,
             message=message,
-            from_email=settings.EMAIL_HOST_USER,          # ✅ fixed
+            from_email=settings.EMAIL_HOST_USER,
             recipient_list=[settings.EMAIL_HOST_USER],
             fail_silently=False,
         )
@@ -159,11 +163,22 @@ class SubscribeAPIView(generics.CreateAPIView):
 @api_view(["GET"])
 def unsubscribe(request):
     """
-    Unsubscribe via GET ?email=<email>
+    Secure unsubscribe via signed token:
+    /api/blogs/unsubscribe/?s=<email:signature>
     """
-    email = request.GET.get("email")
-    if not email:
-        return HttpResponse("Invalid unsubscribe request.", status=400)
+    signed = request.GET.get("s")
+
+    # Backward-compat: old emails had ?email=... -> reject with a hint
+    if not signed:
+        return HttpResponse(
+            "Invalid or outdated link. Please use the latest email to unsubscribe.",
+            status=400,
+        )
+
+    try:
+        email = signer.unsign(signed)  # verifies signature and extracts email
+    except BadSignature:
+        return HttpResponse("Invalid or tampered link.", status=400)
 
     deleted, _ = Subscriber.objects.filter(email=email).delete()
     if deleted:

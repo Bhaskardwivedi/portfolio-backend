@@ -1,12 +1,15 @@
-# portfolio/blogs/signals.py
+
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.core.signing import Signer  
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .models import Blog, Subscriber
 
-print("🧭 signals.py imported")  # module import proof
+print("🧭 signals.py imported")
+
+signer = Signer(salt="newsletter-unsub")  
 
 @receiver(post_save, sender=Blog)
 def send_blog_to_subscribers(sender, instance, created, **kwargs):
@@ -16,17 +19,13 @@ def send_blog_to_subscribers(sender, instance, created, **kwargs):
     base_fe = getattr(settings, "FRONTEND_BASE_URL", "https://bhaskarai.com").rstrip("/")
     base_be = getattr(settings, "BACKEND_BASE_URL", "https://api.bhaskarai.com").rstrip("/")
 
-    print(f"📧 Using bases FE={base_fe} BE={base_be} for slug={instance.slug}")
-
     title = instance.title
     content = (instance.content[:150] + "...") if len(instance.content) > 150 else instance.content
     read_url = f"{base_fe}/blog/{instance.slug}/"
-    # unsubscribe per-subscriber
-    subscribers = Subscriber.objects.values_list("email", flat=True)
 
-    for email in subscribers:
-        unsubscribe_url = f"{base_be}/api/blogs/unsubscribe/?email={email}"
-        print("➡️  sending to:", email, "unsub:", unsubscribe_url)  # log the actual link
+    for email in Subscriber.objects.values_list("email", flat=True):
+        signed = signer.sign(email)  
+        unsubscribe_url = f"{base_be}/api/blogs/unsubscribe/?s={signed}" 
 
         html = f"""
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:10px;border:1px solid #ddd;">
