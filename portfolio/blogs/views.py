@@ -133,7 +133,7 @@ class BlogCreateAPIView(generics.CreateAPIView):
 
         if blog.is_published:
             subject = f"🆕 New Blog Published: {blog.title}"
-            message = f"Hi there!\n\nA new blog has been published:\n\nTitle: {blog.title}\n\nRead it now at: http://api.bhaskarai.com/blogs/{blog.slug}/"
+            message = f"Hi there!\n\nA new blog has been published:\n\nTitle: {blog.title}\n\nRead it now at: http://bhaskarai.com/blogs/{blog.slug}/"
             send_mail(
                 subject,
                 message,

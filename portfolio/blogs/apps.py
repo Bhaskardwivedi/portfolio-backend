@@ -5,4 +5,4 @@ class BlogsConfig(AppConfig):
     name = 'portfolio.blogs'
 
     def ready(self):
-        import portfolio.blogs.signals
+        import portfolio.blogs.signals  # noqa

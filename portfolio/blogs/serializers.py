@@ -2,9 +2,16 @@ from rest_framework import serializers
 from .models import Blog, Comment, Subscriber
 
 class BlogSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Blog
         fields = '__all__' 
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url'):
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None      
 
 class BlogListSerializer(serializers.ModelSerializer):
     summary = serializers.SerializerMethodField() 
@@ -30,11 +37,18 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['name', 'email', 'content', 'created_at']
 
 class BlogDetailSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Blog
         fields = '__all__'
+        
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url'):
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None     
         
 class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
