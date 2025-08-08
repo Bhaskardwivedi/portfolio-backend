@@ -27,7 +27,7 @@ class AboutUs(models.Model):
     hero_image = CloudinaryField('hero_images', blank=True, null=True)
     resume = CloudinaryField('resume', resource_type='raw', blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True) 
-
+    
     @property
     def total_tech_experience(self):
         current_year = date.today().year
