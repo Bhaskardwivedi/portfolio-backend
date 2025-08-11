@@ -2,16 +2,15 @@ from rest_framework import serializers
 from .models import Project, Feature, TechStack, ProjectImage
 from portfolio.category.models import Category
 
-
 # ---------- helpers (reuse everywhere) ----------
 def _abs_url(request, url: str):
+    """Make relative URLs absolute using request; leave absolute/Cloudinary URLs as-is."""
     if not url:
         return None
-    # agar /se start hota hai to absolute banao, warna as-is (Cloudinary)
     return request.build_absolute_uri(url) if (request and isinstance(url, str) and url.startswith("/")) else url
 
 def _safe_field_url(f):
-    """Cloudinary/FileField .url safely (public_id issues ke liye)."""
+    """Return File/CloudinaryField .url safely, avoiding public_id/raw value issues."""
     try:
         return f.url if (f and hasattr(f, "url")) else None
     except Exception:
@@ -66,7 +65,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     cover_image = serializers.SerializerMethodField()
     demo_video  = serializers.SerializerMethodField()
-    bg_image    = serializers.SerializerMethodField()  # optional: if model me nahi hai to None
+    bg_image    = serializers.SerializerMethodField()  # if model has bg_image; else returns None
 
     class Meta:
         model = Project
@@ -82,19 +81,19 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_cover_image(self, obj):
         request = self.context.get("request")
 
-        # 1) explicit cover field (agar Project me ho)
+        # 1) Prefer explicit cover field if present on model
         url = _safe_field_url(getattr(obj, "cover_image", None))
         if url:
             return _abs_url(request, url)
 
-        # 2) common 'image' field (admin me "Image: Currently: <public_id>" aisa hota hai)
+        # 2) Fallback to common 'image' field (admin often shows this)
         url = _safe_field_url(getattr(obj, "image", None))
         if url:
             return _abs_url(request, url)
 
-        # 3) fallback: first related project image
-        first = getattr(obj, "project_images", None)
-        first = first.first() if first else None
+        # 3) Final fallback: first related project image
+        first_rel = getattr(obj, "project_images", None)
+        first = first_rel.first() if first_rel else None
         url = _safe_field_url(getattr(first, "image", None))
         return _abs_url(request, url)
 
