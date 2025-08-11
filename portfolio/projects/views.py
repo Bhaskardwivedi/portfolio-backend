@@ -4,4 +4,9 @@ from .serializers import ProjectSerializer
 
 class ProjectListAPIView(generics.ListAPIView):
     queryset = Project.objects.all().order_by('order')
-    serializer_class = ProjectSerializer
+    serializer_class = ProjectSerializer 
+
+class ProjectDetailAPIView(generics.RetrieveAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer  
+    lookup_field = "slug"
