@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from portfolio.category.models import Category
+from cloudinary.models import CloudinaryField
 
 class Project(models.Model):
     title = models.CharField(max_length=200)
@@ -13,7 +14,7 @@ class Project(models.Model):
     order = models.IntegerField(default=0)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    demo_video = models.FileField(upload_to='project_videos/', blank=True, null=True)
+    demo_video = CloudinaryField('demo_video', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -39,7 +40,7 @@ class TechStack(models.Model):
 
 class ProjectImage(models.Model):
     project = models.ForeignKey(Project, related_name='project_images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='project_images/')
+    image = CloudinaryField('image', blank=True, null=True)
     alt_text = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
