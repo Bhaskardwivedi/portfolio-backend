@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from portfolio.category.models import Category
 from cloudinary.models import CloudinaryField
-from django.core.validators import FileExtensionValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 
 
 class Project(models.Model):
@@ -15,14 +15,25 @@ class Project(models.Model):
     tagline = models.CharField(max_length=160, blank=True)
     description = models.TextField()
 
-    # optional cover for listing cards (pehli image na dhoondni pade)
+    # Card/hero cover (optional)
     cover_image = CloudinaryField("image", blank=True, null=True)
 
-    # ✅ important: video ko video hi treat kare
+    # 🔥 NEW: page background (optional, if you plan to use it)
+    bg_image = CloudinaryField("image", blank=True, null=True)
+
+    # Demo video (Cloudinary video)
     demo_video = CloudinaryField(
         "demo_video",
         resource_type="video",
         folder="project_videos",
+        blank=True,
+        null=True,
+    )
+
+    # ✅ NEW: explicit poster/thumbnail for demo_video
+    demo_video_poster = CloudinaryField(
+        "image",
+        folder="project_posters",
         blank=True,
         null=True,
     )
