@@ -1,12 +1,13 @@
 from django.db import models
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     use_icon = models.BooleanField(default=True)
-    icon = models.CharField(max_length=50, blank=True, null=True)
-    image = models.ImageField(upload_to="category_images/", blank=True, null=True) 
+    icon = CloudinaryField('icon', blank=True, null=True)
+    category_images = CloudinaryField('category_images', blank=True, null=True) 
     class Meta:
         verbose_name = "Categories"
         verbose_name_plural = "categories (services, projects)"
