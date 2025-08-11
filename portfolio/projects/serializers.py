@@ -11,8 +11,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         request = self.context.get('request')
-        if getattr(obj, "image", None) and hasattr(obj.image, "url"):
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        img = getattr(obj, "category_image", None)   
+        if img and hasattr(img, "url"):
+            url = img.url
+            return request.build_absolute_uri(url) if request else url
         return None
 
 
