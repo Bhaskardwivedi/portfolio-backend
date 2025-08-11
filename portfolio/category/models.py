@@ -6,8 +6,8 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     use_icon = models.BooleanField(default=True)
-    icon = CloudinaryField('icon', blank=True, null=True)
-    category_images = CloudinaryField('category_images', blank=True, null=True) 
+    icon = models.CharField(max_length=50, blank=True, null=True)
+    category_image = CloudinaryField('category_images', blank=True, null=True) 
     class Meta:
         verbose_name = "Categories"
         verbose_name_plural = "categories (services, projects)"
