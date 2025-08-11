@@ -2,19 +2,47 @@ from django.db import models
 from django.utils.text import slugify
 from portfolio.category.models import Category
 from cloudinary.models import CloudinaryField
+from django.core.validators import FileExtensionValidator, MinValueValidator
+
 
 class Project(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name="projects")
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, related_name="projects"
+    )
 
+    tagline = models.CharField(max_length=160, blank=True)
     description = models.TextField()
+
+    # optional cover for listing cards (pehli image na dhoondni pade)
+    cover_image = CloudinaryField("image", blank=True, null=True)
+
+    # ✅ important: video ko video hi treat kare
+    demo_video = CloudinaryField(
+        "demo_video",
+        resource_type="video",
+        folder="project_videos",
+        blank=True,
+        null=True,
+    )
+
     github_link = models.URLField(blank=True, null=True)
     live_link = models.URLField(blank=True, null=True)
-    order = models.IntegerField(default=0)
+
+    order = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     is_featured = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
-    demo_video = CloudinaryField('demo_video', blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_featured", "order", "-created_at"]
+        indexes = [
+            models.Index(fields=["slug"]),
+            models.Index(fields=["-is_featured", "order", "-created_at"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -27,20 +55,32 @@ class Project(models.Model):
             self.slug = unique_slug
         super().save(*args, **kwargs)
 
+    def primary_image(self):
+        return self.project_images.first()
+
     def __str__(self):
         return self.title
 
-class Feature(models.Model): 
-    project = models.ForeignKey(Project, related_name='features', on_delete=models.CASCADE)
+
+class Feature(models.Model):
+    project = models.ForeignKey(Project, related_name="features", on_delete=models.CASCADE)
     text = models.CharField(max_length=400)
 
+    def __str__(self):
+        return f"{self.project.title} • {self.text[:40]}"
+
+
 class TechStack(models.Model):
-    project = models.ForeignKey(Project, related_name='tech_stacks', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name="tech_stacks", on_delete=models.CASCADE)
     text = models.CharField(max_length=200)
 
+    def __str__(self):
+        return f"{self.project.title} • {self.text}"
+
+
 class ProjectImage(models.Model):
-    project = models.ForeignKey(Project, related_name='project_images', on_delete=models.CASCADE)
-    image = CloudinaryField('image', blank=True, null=True)
+    project = models.ForeignKey(Project, related_name="project_images", on_delete=models.CASCADE)
+    image = CloudinaryField("image", folder="project_images", blank=True, null=True)
     alt_text = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
