@@ -49,7 +49,9 @@ class ChatMessageAPIView(APIView):
             data = request.data
             if isinstance(data, list):
                 print("DEBUG: data is a list, taking first element")
-                if data and isinstance(data[0], dict):
+                if not data:
+                    return Response({"error": "Empty data list"}, status=status.HTTP_400_BAD_REQUEST)
+                if isinstance(data[0], dict):
                     data = data[0]
                 else:
                     return Response({"error": "Invalid data format"}, status=status.HTTP_400_BAD_REQUEST)
