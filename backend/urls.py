@@ -19,7 +19,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from portfolio.blogs.views import get_csrf_token
+from django.http import JsonResponse
 
+def health(_): return JsonResponse({"ok": True})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +29,7 @@ urlpatterns = [
     path('api/blogs/', include('portfolio.blogs.urls')), 
     path('api/skills/', include('portfolio.skills.urls')), 
     path('api/contact/', include('portfolio.contactus.urls')), 
+    path("api/health/", health),
     path('api/chat/', include('portfolio.chatwithus.urls')), 
     path('api/services/', include('portfolio.services.urls')),
     path('api/aboutus/', include('portfolio.aboutus.urls')), 
