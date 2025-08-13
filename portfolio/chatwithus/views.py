@@ -47,6 +47,8 @@ class ChatMessageAPIView(APIView):
 
         try:
             data = request.data
+            
+            # Handle different data formats
             if isinstance(data, list):
                 print("DEBUG: data is a list, taking first element")
                 if not data:
@@ -55,7 +57,10 @@ class ChatMessageAPIView(APIView):
                     data = data[0]
                 else:
                     return Response({"error": "Invalid data format"}, status=status.HTTP_400_BAD_REQUEST)
+            elif not isinstance(data, dict):
+                return Response({"error": "Data must be a dictionary or list of dictionaries"}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Now data should definitely be a dict
             name = data.get("name", "Guest").strip()
             email = data.get("email", "").strip().lower()
             user_message = data.get("message", "").strip()
