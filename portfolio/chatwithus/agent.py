@@ -55,7 +55,7 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
             })
        
         services = []
-        for s in ServiceModel.objects.all().values("title", "description"):
+        for s in ServiceModel.objects.filter(is_active=True).values("title", "description"):
             services.append({
                 "title": (s.get("title") or "").strip(),
                 "description": (s.get("description") or "").strip(),
@@ -105,7 +105,7 @@ def _fmt_projects(projects: List[Dict[str, Any]], limit=3) -> str:
     for p in projects[:limit]:
         line = f"- {p.get('title', '')}: {p.get('description', '')}"
         if p.get("tech_stacks"):
-            line += f" [{p['tech_stacks']}]"
+            line += f" [{', '.join(p['tech_stacks'])}]"
         if p.get("link"):
             line += f" ({p['link']})"
         out.append(line)
@@ -123,8 +123,16 @@ def get_session_context(session_id: str, max_chars=900) -> str:
 
 def push_memory(session_id: str, user_line: str, bot_line: str):
     try:
-        session, created = ChatSession.objects.get_or_create(session_id=session_id, defaults={"messages": []})
-        session.messages.extend([user_line, bot_line])
+        session, created = ChatSession.objects.get_or_create( 
+            session_id=session_id, 
+            defaults={"messages": []}
+        )
+        msgs = session.messages or []
+        if not isinstance(msgs, list):
+            msgs = []
+
+        msgs.extend([user_line, bot_line])
+        session.messages = msgs
         session.save()
     except Exception as e:
         print("Session save error:", e)
