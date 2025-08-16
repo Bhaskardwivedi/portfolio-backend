@@ -1,4 +1,5 @@
-[
+{
+  "rules": [
     {
       "intent": "repeat",
       "bad_reply_contains": "how can i assist",
@@ -9,26 +10,25 @@
       "bad_reply_contains": "okay",
       "replace_with": "Got it! Bhaskar will follow up shortly with the next step."
     },
-
     {
-        "intent": "repeat",
-        "bad_reply_contains": "how can i assist",
-        "replace_with": "Noted! Let's move forward with scheduling."
+      "intent": "repeat",
+      "bad_reply_contains": "how can i assist",
+      "replace_with": "Noted! Let's move forward with scheduling."
     },
     {
-        "intent": "ask",
-        "bad_reply_contains": "how can i help",
-        "replace_with": "Bhaskar is a skilled Data Engineer with 3+ yrs of experience. He builds smart dashboards and automation workflows for clients. Would you like to discuss your use case?"
+      "intent": "ask",
+      "bad_reply_contains": "how can i help",
+      "replace_with": "Bhaskar is a skilled Data Engineer with 3+ yrs of experience. He builds smart dashboards and automation workflows for clients. Would you like to discuss your use case?"
     },
     {
-        "intent": "inform",
-        "bad_reply_contains": "how can i assist",
-        "replace_with": "Awesome! Booking your Zoom meeting with Bhaskar now. Kindly check your email shortly."
+      "intent": "inform",
+      "bad_reply_contains": "how can i assist",
+      "replace_with": "Awesome! Booking your Zoom meeting with Bhaskar now. Kindly check your email shortly."
     },
     {
-        "intent": "inform",
-        "bad_reply_contains": "would you like to connect",
-        "replace_with": "Sure, Bhaskar will follow up with you later. Just ping me here when you’re ready!"
+      "intent": "inform",
+      "bad_reply_contains": "would you like to connect",
+      "replace_with": "Sure, Bhaskar will follow up with you later. Just ping me here when you’re ready!"
     }
   ]
-  
+}

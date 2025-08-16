@@ -1,19 +1,19 @@
 from rest_framework import serializers
-from .models import Service, ServiceFeature, Category  # ✅ sab models yahan import kar
+from .models import Service, ServiceFeature, Category
 
-# ✅ Feature serializer
+
 class ServiceFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceFeature
         fields = ['id', 'point']
 
-# ✅ Category serializer
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'type']
 
-# ✅ Service serializer with nested category + features
+
 class ServiceSerializer(serializers.ModelSerializer):
     features = ServiceFeatureSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True) 

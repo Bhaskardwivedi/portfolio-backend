@@ -26,7 +26,7 @@ class Service(models.Model):
         return self.title
     
 class ServiceFeature(models.Model):
-    Service = models.ForeignKey('service', on_delete=models.CASCADE, related_name='features')
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='features')
     point = models.CharField(max_length=255)
 
     def __str__(self):

@@ -27,9 +27,16 @@ class ChatFeedback(models.Model):
         return f"{self.user_name} - {self.feedback} - {self.intent}"
 
 class ChatSession(models.Model):
-    session_id = models.CharField(max_length=100, unique=True)
+    session_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     messages = models.JSONField(default=list)
-    updated_at = models.DateTimeField(auto_now=True)
+    message_count = models.IntegerField(default=0)
+    requirement_confirmed = models.BooleanField(default=False)
+    last_intent = models.CharField(max_length=50, blank=True, null=True)
+    meeting_stage = models.CharField(max_length=50, blank=True, null=True)
+    platform_selected = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.session_id    

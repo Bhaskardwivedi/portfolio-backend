@@ -72,7 +72,13 @@ INSTALLED_APPS = [
     'corsheaders', 
     'rest_framework', 
     'rest_framework.authtoken', 
+    'django_filters',
 ]
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend"
+    ]
+}    
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

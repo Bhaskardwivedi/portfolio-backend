@@ -5,200 +5,160 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from django.core.mail import send_mail
-from django.http import JsonResponse
-from datetime import datetime, timedelta
-import urllib.parse
-import os, json
 import traceback
 
-from .agent import generate_smart_reply, summarize_client_need
-from .serializers import ChatFeedbackSerializer
+from .agent import generate_smart_reply
 from .zoom_utils import create_zoom_meeting
-from textblob import TextBlob
+from .models import ChatSession
 
 
 class ChatMessageAPIView(APIView):
     conversation_memory = {}
 
-    def analyze_user_message(self, message):
-        """Analyze sentiment, urgency & intent from user message."""
-        blob = TextBlob(message)
-        sentiment = blob.sentiment.polarity
-        urgency = "high" if any(x in message.lower() for x in ["urgent", "asap", "quick", "fast", "now"]) else "normal"
-        intent = "repeat" if "already told" in message.lower() else "ask" if "?" in message else "inform"
-        return {"sentiment": sentiment, "urgency": urgency, "intent": intent, "length": len(message.split())}
-
-    def apply_learning_rules(self, reply, intent):
-        """Apply RL-style fixes from chatbot_learnings.json."""
-        try:
-            path = os.path.join(os.getcwd(), "chatbot_learnings.json")
-            with open(path, "r") as f:
-                rules = json.load(f)
-            for rule in rules:
-                if rule["intent"] == intent and rule["bad_reply_contains"] in reply.lower():
-                    return rule["replace_with"]
-        except Exception as e:
-            print("Learning rule error:", e)
-        return reply
-
     def post(self, request):
-        print("DEBUG: /api/chat/ POST request received")
-        print("DEBUG request.data raw:", request.data)
-
         try:
-            data = request.data
-            
-            # Handle different data formats
-            if isinstance(data, list):
-                print("DEBUG: data is a list, taking first element")
-                if not data:
-                    return Response({"error": "Empty data list"}, status=status.HTTP_400_BAD_REQUEST)
-                if isinstance(data[0], dict):
-                    data = data[0]
-                else:
-                    return Response({"error": "Invalid data format"}, status=status.HTTP_400_BAD_REQUEST)
-            elif not isinstance(data, dict):
-                return Response({"error": "Data must be a dictionary or list of dictionaries"}, status=status.HTTP_400_BAD_REQUEST)
+            session_id = request.GET.get("session_id", "anon").strip()
 
-            # Now data should definitely be a dict
-            name = data.get("name", "Guest").strip()
+            # 🆕 Reset session if new_session param given
+            if request.GET.get("new_session") == "true":
+                ChatSession.objects.filter(session_id=session_id).delete()
+                self.conversation_memory.pop(session_id, None)
+
+            # ✅ Parse incoming data
+            data = request.data[0] if isinstance(request.data, list) else request.data
+            if not isinstance(data, dict):
+                return Response({"error": "Invalid data format"}, status=status.HTTP_400_BAD_REQUEST)
+
+            name = data.get("name", "").strip()
             email = data.get("email", "").strip().lower()
             user_message = data.get("message", "").strip()
 
-            print(f"DEBUG: Parsed name={name}, email={email}, message={user_message}")
+            if not user_message:
+                return Response({"error": "Missing message"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not user_message or not email:
-                print("ERROR: Missing email or message")
-                return Response({"error": "Missing email or message"}, status=status.HTTP_400_BAD_REQUEST)
+            # 📂 Get or create session
+            chat_session, _ = ChatSession.objects.get_or_create(session_id=session_id)
 
-            misuse_keywords = ['what is', 'how to', 'generate code', 'explain', 'syntax', 'write a function']
-            if any(word in user_message.lower() for word in misuse_keywords):
-                print("DEBUG: Misuse query blocked")
-                return Response({"bot_reply": "I'm Bhaskar's assistant. I help only with project discussions."})
+            # Save name/email if first time
+            if name and not chat_session.name:
+                chat_session.name = name
+            if email and not chat_session.email:
+                chat_session.email = email
 
-            # Memory
-            if email not in self.conversation_memory:
-                self.conversation_memory[email] = {"stage": "ask_need", "need": None}
-            memory = self.conversation_memory[email]
-            print(f"DEBUG: Current memory={memory}")
+            # Default values if not set
+            defaults = {
+                "message_count": 0,
+                "meeting_stage": None,
+                "platform_selected": None,
+                "requirement_confirmed": False,
+                "last_intent": None
+            }
+            for field, default in defaults.items():
+                if getattr(chat_session, field, None) is None:
+                    setattr(chat_session, field, default)
 
-            # NLP analysis
-            behavior = self.analyze_user_message(user_message)
-            print(f"DEBUG: NLP analysis={behavior}")
+            chat_session.message_count += 1
+            chat_session.save()
 
-            # Stage-based conversation
-            if memory["stage"] == "ask_need":
-                if behavior["length"] >= 5 or any(k in user_message.lower() for k in ["dashboard", "need", "project"]):
-                    memory["need"] = user_message
-                    memory["stage"] = "confirm_meeting"
-                    reply = "Thanks for sharing your requirement. Would you like to connect over WhatsApp or schedule a Zoom call?"
-                elif user_message.lower() in ["hi", "hello", "hey", "good morning", "good evening"]:
-                    reply = generate_smart_reply(user_message, name)
+            # 🔹 Step 1 — Ask Name
+            if not chat_session.name:
+                return Response({"bot_reply": "May I know your name?"})
+
+            # 🔹 Step 2 — Ask Email
+            if not chat_session.email:
+                return Response({"bot_reply": f"Thanks {chat_session.name}! Could you share your email so I can follow up?"})
+
+            # 🔹 Step 3 — Requirement Confirmation
+            requirement_keywords = ["need", "want", "require", "looking for", "build", "develop", "create"]
+            if any(k in user_message.lower() for k in requirement_keywords) and not chat_session.requirement_confirmed:
+                chat_session.last_intent = "confirm_requirement"
+                chat_session.temp_requirement = user_message
+                chat_session.save()
+                return Response({"bot_reply": f"Got it, {chat_session.name}. So you’re looking for {user_message}, right?"})
+
+            if chat_session.last_intent == "confirm_requirement" and user_message.lower() in ["yes", "yep", "sure", "ok"]:
+                chat_session.requirement_confirmed = True
+                chat_session.last_intent = None
+                chat_session.meeting_stage = "ask_platform"
+                chat_session.save()
+
+                # Send requirement email to owner
+                send_mail(
+                    subject="New Client Requirement Received",
+                    message=f"Client: {chat_session.name}\nEmail: {chat_session.email}\nRequirement: {getattr(chat_session, 'temp_requirement', '')}",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[settings.EMAIL_HOST_USER],
+                    fail_silently=True
+                )
+
+                return Response({"bot_reply": "Perfect! Would you like to connect over Zoom or Google Meet?"})
+
+            # 🔹 Step 4 — Meeting Platform (more human-like)
+            if chat_session.meeting_stage == "ask_platform":
+                msg_lower = user_message.lower()
+
+                if "zoom" in msg_lower:
+                    chat_session.platform_selected = "Zoom"
+                    chat_session.meeting_stage = "ask_time"
+                    chat_session.save()
+                    return Response({"bot_reply": "Great! Please share a suitable date & time for the Zoom meeting."})
+                elif "google meet" in msg_lower or "meet" in msg_lower:
+                    chat_session.platform_selected = "Google Meet"
+                    chat_session.meeting_stage = "ask_time"
+                    chat_session.save()
+                    return Response({"bot_reply": "Got it! Please share a suitable date & time for the Google Meet."})
+                elif any(word in msg_lower for word in ["bhaskar", "project", "skill", "capable"]):
+                    return Response({"bot_reply": "Bhaskar is an experienced AI & automation developer with multiple successful projects delivered. Now, would you prefer Zoom or Google Meet?"})
+                elif any(word in msg_lower for word in ["need", "require", "details", "more info"]):
+                    # Save extra details to send in meeting email later
+                    chat_session.extra_details = user_message
+                    chat_session.save()
+                    return Response({"bot_reply": "Thanks for sharing the details. Would you like to proceed with Zoom or Google Meet?"})
                 else:
-                    reply = "Could you please share what you'd like Bhaskar to help you with?"
+                    return Response({"bot_reply": "Please choose Zoom or Google Meet."})
 
-            elif memory["stage"] == "confirm_meeting":
-                if user_message.lower() in ["yes", "ok", "sure", "yep", "haan"]:
-                    memory["stage"] = "booked"
-                    reply = "Great! I'll book a Zoom meeting and notify Bhaskar. Please check your email shortly."
-                else:
-                    reply = "Would you prefer a Zoom call or connect over WhatsApp?"
+            # 🔹 Step 5 — Meeting Time
+            if chat_session.meeting_stage == "ask_time":
+                meeting_time = user_message
+                platform = chat_session.platform_selected
+                chat_session.meeting_stage = None
+                chat_session.save()
 
-            elif memory["stage"] == "booked":
-                reply = "We've already scheduled a call. Bhaskar will reach out to you soon."
+                # Create meeting link
+                meeting_link = create_zoom_meeting() if platform == "Zoom" else "Google Meet link will be shared soon."
 
-            reply = self.apply_learning_rules(reply, behavior["intent"])
+                # Email client
+                send_mail(
+                    subject=f"{platform} Meeting Scheduled with Bhaskar",
+                    message=f"Hi {chat_session.name},\n\nYour {platform} meeting is confirmed.\nTime: {meeting_time}\nLink: {meeting_link}",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[chat_session.email],
+                    fail_silently=True
+                )
 
-            # Triggers
-            trigger_contact = any(k in user_message.lower() for k in [
-                'hire', 'freelance', 'project', 'work with you', 'build', 'website', 'develop'
-            ])
-            trigger_meeting = any(k in user_message.lower() for k in [
-                'call', 'meet', 'schedule', 'talk', 'connect later', 'tomorrow', 'next week'
-            ])
-            is_meeting_time = any(k in user_message.lower() for k in ['am', 'pm', ':', 'at', 'noon', 'evening', 'morning'])
+                # Email owner (with extra details if provided)
+                owner_msg = f"Client: {chat_session.name}\nEmail: {chat_session.email}\nTime: {meeting_time}\nPlatform: {platform}\nLink: {meeting_link}"
+                if hasattr(chat_session, "extra_details"):
+                    owner_msg += f"\nExtra Details: {chat_session.extra_details}"
+                send_mail(
+                    subject=f"New Meeting Scheduled ({platform})",
+                    message=owner_msg,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[settings.EMAIL_HOST_USER],
+                    fail_silently=True
+                )
 
-            zoom_meeting_link, calendar_link = None, None
+                return Response({"bot_reply": f"Your {platform} meeting is confirmed for {meeting_time}. Link: {meeting_link}"})
 
-            if trigger_meeting and is_meeting_time:
-                try:
-                    print("DEBUG: Auto-scheduling meeting...")
-                    zoom_meeting_link = create_zoom_meeting()
-                    start_time = datetime.utcnow() + timedelta(days=2)
-                    end_time = start_time + timedelta(minutes=45)
-                    calendar_link = (
-                        "https://www.google.com/calendar/render?action=TEMPLATE"
-                        f"&text=Zoom+Meeting+with+Bhaskar"
-                        f"&dates={start_time.strftime('%Y%m%dT%H%M%SZ')}/{end_time.strftime('%Y%m%dT%H%M%SZ')}"
-                        f"&details=Join+Zoom+Meeting:+{urllib.parse.quote(zoom_meeting_link)}"
-                        f"&location=Zoom&trp=false"
-                    )
-
-                    send_mail(
-                        subject=f"Zoom Meeting Scheduled with Bhaskar",
-                        message=(
-                            f"Hi {name},\n\nYour Zoom meeting with Bhaskar is confirmed.\n"
-                            f"📅 Time: {user_message}\n"
-                            f"🔗 Link: {zoom_meeting_link}\n"
-                            f"📆 Add to Calendar: {calendar_link}\n\nBe ready on time.\n\nRegards,\nBhaskar's Assistant"
-                        ),
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[email],
-                        fail_silently=True
-                    )
-
-                    summary = summarize_client_need(memory.get("need", user_message))
-                    send_mail(
-                        subject=f"New Meeting Scheduled - {name}",
-                        message=f"Client: {name}\nEmail: {email}\nNeed:\n{summary}\n\nMeeting Link: {zoom_meeting_link}",
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[settings.EMAIL_HOST_USER],
-                        fail_silently=True
-                    )
-
-                except Exception as e:
-                    print("Meeting scheduling error:", e)
-                    print(traceback.format_exc())
-
-            if trigger_contact and not (trigger_meeting and is_meeting_time):
-                try:
-                    summary = summarize_client_need(user_message)
-                    send_mail(
-                        subject=f"New Client Lead via Chatbot - {name}",
-                        message=f"Client: {name}\n\nNeed:\n{summary}\n\nFollow up soon.",
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[settings.EMAIL_HOST_USER],
-                        fail_silently=True
-                    )
-                except Exception as e:
-                    print("Lead email error:", e)
-                    print(traceback.format_exc())
-
-            return Response({
-                "bot_reply": reply,
-                "trigger_contact": trigger_contact,
-                "trigger_meeting": trigger_meeting,
-                "meeting_link": zoom_meeting_link,
-                "calendar_link": calendar_link,
-                "nlp_tags": behavior
-            }, status=status.HTTP_200_OK)
+            # 🔹 Step 6 — AI Fallback
+            reply = generate_smart_reply(user_message, chat_session.name, session_id=session_id)
+            return Response({"bot_reply": reply})
 
         except Exception as e:
-            print("ERROR in ChatMessageAPIView:", e)
-            print(traceback.format_exc())
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class DebugAPIView(APIView):
     def get(self, request):
-        return Response({"message": "Debug view working fine!"}) 
-
-
-def chat_view(request):
-    try:
-        print("DEBUG: /api/chat/ request reached")  
-        return JsonResponse({"message": "Chat endpoint reached"}, status=200)
-    except Exception as e:
-        print("ERROR in /api/chat/:", e)
-        print(traceback.format_exc())
-        return JsonResponse({"error": str(e)}, status=500)
+        return Response({"status": "debug endpoint working"})
