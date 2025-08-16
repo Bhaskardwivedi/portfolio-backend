@@ -42,7 +42,7 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
                 getattr(about, "title", "") or "",
                 getattr(about, "description", "") or ""
             ]).strip(" | ")
-        skills = list(Skill.objects.values_list("name", flat=True))
+        skills = list(Skill.objects.values_list("text", flat=True))
         projects = []
 
         for p in Project.objects.prefetch_related("tech_stacks", "features").all()[0:5]:
