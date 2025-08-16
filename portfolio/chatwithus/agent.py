@@ -55,7 +55,7 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
             })
        
         services = []
-        for s in ServiceModel.objects.filter(is_active=True).values("title", "description"):
+        for s in ServiceModel.objects.all().values("title", "description"):
             services.append({
                 "title": (s.get("title") or "").strip(),
                 "description": (s.get("description") or "").strip(),
