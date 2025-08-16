@@ -54,10 +54,10 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
                 "features": list(p.features.values_list("point", flat=True)),
             })
 
-        for s in ServiceModel.objects.all().values("title", "description")[0:5]:
+        for s in ServiceModel.objects.all()[0:5]:
             services.append({
-                "title": s.get("title", "").strip(),
-                "description": s.get("description", "").strip(),
+                "title": s.title.strip(),   
+                "pitch": f"🤝 {s.title}: {(s.tagline or s.description or '').strip()[:80]}..."
             })
 
         return {"intro": intro, "skills": skills, "projects": projects, "services": services} if (intro or skills or projects or services) else None
