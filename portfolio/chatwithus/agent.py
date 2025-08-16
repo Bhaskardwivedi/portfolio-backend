@@ -134,6 +134,7 @@ def push_memory(session_id: str, user_line: str, bot_line: str):
         msgs.extend([user_line, bot_line])
         session.messages = msgs
         session.save()
+        print(f"[{session_id}] Memory updated: {session.messages}")
     except Exception as e:
         print("Session save error:", e)
 
