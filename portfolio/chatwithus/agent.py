@@ -55,7 +55,7 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
             })
        
         services = []
-        for s in ServiceModel.objects.all().values("title", "description"):
+        for s in ServiceModel.objects.all():
             services.append({
                 "title": getattr(s, "title", "").strip(),
                 "description": getattr(s, "description", "").strip(),
