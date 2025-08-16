@@ -43,7 +43,7 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
                 getattr(about, "description", "") or ""
             ]).strip(" | ")
         skills = list(Skill.objects.values_list("name", flat=True))
-        projects, services = [], []
+        projects = []
 
         for p in Project.objects.prefetch_related("tech_stacks", "features").all()[0:5]:
             projects.append({
@@ -53,18 +53,20 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
                 "tech_stacks": list(p.tech_stacks.values_list("name", flat=True)),
                 "features": list(p.features.values_list("point", flat=True)),
             })
-
-        for s in ServiceModel.objects.all()[0:5]:
-            title = (s.title or "").strip()
-            desc = (s.description or "").strip()
-            short_desc = (desc[:80] + "...") if len(desc) > 80 else desc
-
+       
+        services = []
+        for s in ServiceModel.objects.all().values("title", "description"):
             services.append({
-                "title": title,
-                "pitch": f"🤝 {title}: {short_desc}"
+                "title": (s.get("title") or "").strip(),
+                "description": (s.get("description") or "").strip(),
             })
 
-        return {"intro": intro, "skills": skills, "projects": projects, "services": services} if (intro or skills or projects or services) else None
+        return {"intro": intro,
+                "skills": skills,
+                "projects": projects, 
+                "services": services
+                } if (intro or skills or projects or services) else None
+    
     except Exception as e:
         print("Profile fetch error:", e)
         return None
