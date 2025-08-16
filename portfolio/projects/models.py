@@ -30,7 +30,7 @@ class Project(models.Model):
         null=True,
     )
 
-    # ✅ NEW: explicit poster/thumbnail for demo_video
+
     demo_video_poster = CloudinaryField(
         "image",
         folder="project_posters",

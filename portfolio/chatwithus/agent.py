@@ -43,15 +43,16 @@ def _fetch_from_models() -> Optional[Dict[str, Any]]:
                 getattr(about, "description", "") or ""
             ]).strip(" | ")
         skills = list(Skill.objects.values_list("name", flat=True))
-        projects, services = [], []
+        services = [], 
+        projects = []
 
-        for p in Project.objects.all().values("title", "tagline", "description", "tech_stacks", "features")[:5]:
+        for p in Project.objects.prefetch_related("tech_stacks", "features").all()[:5]:
             projects.append({
-                "title": p.get("title", "").strip(),
-                "tagline": p.get("tagline", "").strip(),
-                "description": p.get("description", "").strip(),
-                "tech_stacks": p.get("tech_stacks") or "",
-                "features": p.get("features") or "",
+                "title": p.title.strip(),
+                "tagline": (p.tagline or "").strip(),
+                "description": (p.description or "").strip(),
+                "tech_stacks": list(p.tech_stacks.values_list("name", flat=True)),
+                "features": list(p.features.values_list("point", flat=True)),
             })
 
         for s in ServiceModel.objects.all().values("title", "description")[0:5]:
