@@ -1,6 +1,7 @@
 from django.urls import path 
 from .views import ChatMessageAPIView, DebugAPIView
 from .views_health import env_health, create_zoom_meeting
+from .views_zoom_auth import zoom_token_health
 
 
 
@@ -10,4 +11,5 @@ urlpatterns = [
     path('debug/', DebugAPIView.as_view()),
     path('test_zoom/', env_health),
      path('create_zoom/', create_zoom_meeting),
+     path('token/', zoom_token_health),
 ]
