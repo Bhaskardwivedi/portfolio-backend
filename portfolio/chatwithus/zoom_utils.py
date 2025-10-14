@@ -3,7 +3,7 @@ import requests
 import base64
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
-from portfolio.chatwithus.calendar_utils import create_calendar_event, send_meeting_invite
+from portfolio.chatwithus.calendar_utils import create_calendar_event
 
 load_dotenv()
 
@@ -85,20 +85,21 @@ def create_zoom_meeting(topic="Client Meeting with Bhaskar", start_time=None, cr
         calendar_result = None
         if create_calendar_event:
             try:
-                calendar_result = create_calendar_event(
-                    meeting_data=zoom_details,
-                    zoom_join_url=zoom_details["join_url"],
-                    start_time=start_time
-                )
+                # Convert start_time to proper format for create_calendar_event
+                from datetime import datetime
+                start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                start_iso_ist = start_dt.astimezone().isoformat()
                 
-                # Send meeting invite if attendees provided
-                if attendee_emails:
-                    send_meeting_invite(
-                        meeting_data=zoom_details,
-                        zoom_join_url=zoom_details["join_url"],
-                        attendee_emails=attendee_emails,
-                        start_time=start_time
-                    )
+                # Create calendar event with attendee emails if provided
+                attendee_email = attendee_emails[0] if attendee_emails and len(attendee_emails) > 0 else None
+                
+                calendar_result = create_calendar_event(
+                    topic=zoom_details["topic"],
+                    start_iso_ist=start_iso_ist,
+                    duration_min=45,
+                    attendee_email=attendee_email,
+                    join_url=zoom_details["join_url"]
+                )
                     
             except Exception as e:
                 print(f"Calendar integration error: {e}")
