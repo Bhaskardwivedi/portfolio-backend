@@ -93,7 +93,7 @@ def test_calendar_functions_directly():
     print("\n📅 Test 3: Testing Calendar Functions Directly...")
     
     try:
-        from portfolio.chatwithus.calendar_utils import create_calendar_event, generate_ics_file
+        from portfolio.chatwithus.calendar_utils import create_calendar_event
         
         # Test data
         meeting_data = {
@@ -104,11 +104,15 @@ def test_calendar_functions_directly():
         
         # Test calendar event creation
         print("   Testing calendar event creation...")
+        from datetime import datetime, timezone
+        start_time = datetime.now(timezone.utc).isoformat()
+        
         calendar_result = create_calendar_event(
-            meeting_data=meeting_data,
-            zoom_join_url=zoom_url,
-            start_time=None,
-            duration_minutes=30
+            topic=meeting_data["topic"],
+            start_iso_ist=start_time,
+            duration_min=30,
+            attendee_email=None,
+            join_url=zoom_url
         )
         
         if calendar_result:
@@ -117,23 +121,8 @@ def test_calendar_functions_directly():
         else:
             print("   ❌ Direct calendar creation failed")
         
-        # Test ICS file generation
-        print("   Testing ICS file generation...")
-        ics_content = generate_ics_file(
-            meeting_data=meeting_data,
-            zoom_join_url=zoom_url,
-            start_time=None
-        )
-        
-        if ics_content:
-            print("   ✅ ICS file generated!")
-            print(f"      ICS Length: {len(ics_content)} characters")
-            # Save ICS file for testing
-            with open('test_meeting.ics', 'w') as f:
-                f.write(ics_content)
-            print("      📁 ICS file saved as 'test_meeting.ics'")
-        else:
-            print("   ❌ ICS generation failed")
+        # Note: ICS file generation function not available in current calendar_utils
+        print("   ℹ️  ICS file generation not available in current implementation")
             
     except Exception as e:
         print(f"   ❌ Error: {e}")
@@ -150,24 +139,29 @@ def test_email_integration():
         test_gmail()
         print("   ✅ Gmail connection successful!")
         
-        # Test sending meeting invite
+        # Test sending meeting invite through calendar event creation
         print("   Testing meeting invite email...")
-        from portfolio.chatwithus.calendar_utils import send_meeting_invite
         
         meeting_data = {
             "meeting_id": "email_test_123",
             "topic": "Email Test Meeting"
         }
         
-        email_result = send_meeting_invite(
-            meeting_data=meeting_data,
-            zoom_join_url="https://zoom.us/j/email_test_123",
-            attendee_emails=["test@example.com"],
-            start_time=None
+        from datetime import datetime, timezone
+        start_time = datetime.now(timezone.utc).isoformat()
+        
+        # Create calendar event with attendee email to send invite
+        email_result = create_calendar_event(
+            topic=meeting_data["topic"],
+            start_iso_ist=start_time,
+            duration_min=30,
+            attendee_email="test@example.com",
+            join_url="https://zoom.us/j/email_test_123"
         )
         
         if email_result:
-            print("   ✅ Meeting invite email sent!")
+            print("   ✅ Meeting invite email sent via calendar event!")
+            print(f"      Event ID: {email_result['event_id']}")
         else:
             print("   ❌ Meeting invite email failed")
             
@@ -211,8 +205,7 @@ def main():
     print("\n📋 Next Steps:")
     print("1. Check your Zoom account for the created meetings")
     print("2. Check your Google Calendar for the events")
-    print("3. Open the 'test_meeting.ics' file to test calendar import")
-    print("4. Check your email for meeting invites (if configured)")
+    print("3. Check your email for meeting invites (if configured)")
 
 if __name__ == "__main__":
     main()

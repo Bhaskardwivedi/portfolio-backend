@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 from .zoom_utils import create_zoom_meeting
-from .calendar_utils import create_calendar_event, send_meeting_invite
+from .calendar_utils import create_calendar_event
 from django.shortcuts import render # Added missing import
 from django.core.mail import send_mail # Added missing import
 
