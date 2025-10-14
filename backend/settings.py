@@ -45,21 +45,36 @@ BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL", "https://api.bhaskarai.com")
 # -----------------------------------------------------------------------------
 # Restore Google API files from Railway env (Base64 or raw JSON)
 # -----------------------------------------------------------------------------
-def _write_file_from_env(var: str, path: str):
+def _write_file_from_env(var: str, path: Path):
     data = os.getenv(var)
     if not data:
         return
-    try:
-        # if it’s base64 we decode; if not, we just write raw JSON
-        data = base64.b64decode(data).decode()
-    except Exception:
-        pass
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(data)
 
-# Will create files next to manage.py at runtime (Railway)
-_write_file_from_env("GOOGLE_CREDENTIALS_JSON", str(BASE_DIR / "credentials.json"))
-_write_file_from_env("GOOGLE_TOKEN_JSON", str(BASE_DIR / "token.json"))
+    s = data.strip()
+
+    try:
+        if "BEGIN CERTIFICATE" in s and "END CERTIFICATE" in s:
+            # PowerShell `certutil -encode` style: strip header/footer + join body
+            body_lines = [
+                line for line in s.splitlines()
+                if not line.startswith("-----BEGIN") and not line.startswith("-----END")
+            ]
+            b64 = "".join(body_lines)
+            s = base64.b64decode(b64).decode("utf-8")
+        else:
+            # Try plain base64 first
+            s = base64.b64decode(s).decode("utf-8")
+    except Exception:
+        # Not base64? assume it's already raw JSON text
+        s = data
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(s)
+
+# Write files next to manage.py at runtime
+_write_file_from_env("GOOGLE_CREDENTIALS_JSON", BASE_DIR / "credentials.json")
+_write_file_from_env("GOOGLE_TOKEN_JSON",       BASE_DIR / "token.json")
 
 # -----------------------------------------------------------------------------
 # Third-party service envs (Zoom / OpenAI etc.)
